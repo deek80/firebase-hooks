@@ -1,4 +1,4 @@
-import {auth} from "./init";
+import {auth} from "../init";
 
 const signInWithGoogleReselect = () => {
   auth().signInWithPopup(

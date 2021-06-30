@@ -1,7 +1,10 @@
 {
-  "name": "@deek80/firebase",
-  "version": "0.0.2",
+  "name": "@deek80/firebase-hooks",
+  "version": "0.0.1",
+  "description": "React hooks for firebase services",
+  "main": "src/index.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
     "@types/react": "^17.0.11"
@@ -14,5 +17,20 @@
     "arrowParens": "avoid",
     "bracketSpacing": false,
     "trailingComma": "es5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deek80/firebase-hooks.git"
+  },
+  "keywords": [
+    "firebase",
+    "react",
+    "hooks"
+  ],
+  "author": "Don Patterson <donald.patterson@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/deek80/firebase-hooks/issues"
+  },
+  "homepage": "https://github.com/deek80/firebase-hooks#readme"
 }
