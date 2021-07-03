@@ -1,5 +1,6 @@
 import {useMemo, useEffect, useState} from "react";
-import {database} from "../init";
+import firebase from "firebase/app";
+import "firebase/database";
 import {useAuth} from "./auth";
 
 /*
@@ -42,7 +43,7 @@ import {useAuth} from "./auth";
 const useFirebaseRef = path => {
   const user = useAuth();
   return useMemo(
-    () => user && database().ref(`users/${user.uid}/data/${path}`),
+    () => user && firebase.database().ref(`users/${user.uid}/data/${path}`),
     [user, path]
   );
 };

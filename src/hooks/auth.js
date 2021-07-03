@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import {auth} from "../init";
 
 /*
   Defines a hook to fetch and listen for changes to the currently logged in
@@ -23,10 +22,10 @@ import {auth} from "../init";
     user: User    meaning: someone logged in!
  */
 
-const useAuth = () => {
+const useAuth = onChange => {
   const [user, setUser] = useState(null);
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(
+    const unsubscribe = onChange(
       user => setUser(user),
       _err => setUser(null)
     );
