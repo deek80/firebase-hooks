@@ -1,17 +1,13 @@
-import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
-import {useAuth, useAuth} from "./hooks/auth";
+import firebase from "firebase/app";
+import {useAuth} from "./hooks/auth";
 import {useData} from "./hooks/database";
 
-// maybe something like this would be ok:
-const useFirebaseAuth = useAuth.apply(this, firebase.auth());
-const useFirebaseData = useData.apply(this, firebase.database());
-// then you could inject your own thing and test it...
+// inject firebase
+const {auth, database} = firebase;
+const useFirebaseAuth = useAuth.apply(null, auth());
+const useFirebaseUserData = useData.apply(null, auth(), database());
 
-export {useFirebaseAuth};
-export {
-  signInWithGoogle,
-  signInWithGoogleReselect,
-  signOut,
-} from "./util/signin";
+export {useFirebaseAuth, useFirebaseUserData};
+export {signIn, signOut} from "./util/auth";
