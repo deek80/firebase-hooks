@@ -27,16 +27,16 @@ describe("the useAuth hook", () => {
     const expectedUser = {uid: "abc"};
     const {result} = renderHook(() => useAuth(auth));
     act(() => {
+      authEvent.login({uid: "some user"});
       authEvent.login(expectedUser);
     });
     expect(result.current).toBe(expectedUser);
   });
 
   it("logs you out on error", () => {
-    const someUser = {uid: "abc"};
     const {result} = renderHook(() => useAuth(auth));
     act(() => {
-      authEvent.login(someUser);
+      authEvent.login({uid: "some user"});
       authEvent.error();
     });
     expect(result.current).toBe(null);

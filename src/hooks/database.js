@@ -49,7 +49,7 @@ const useData = ref => {
     ref.on(
       "value",
       data => setState({value: data.val(), error: null}),
-      error => setState({value: null, error})
+      error => setState({value: undefined, error})
     );
 
     return () => {
@@ -57,7 +57,7 @@ const useData = ref => {
     };
   }, [ref]);
 
-  return {value, error, ref};
+  return {value, error};
 };
 
 export {useData};
