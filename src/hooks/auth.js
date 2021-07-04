@@ -22,10 +22,10 @@ import {useEffect, useState} from "react";
     user: User    meaning: someone logged in!
  */
 
-const useAuth = onChange => {
+const useAuth = auth => {
   const [user, setUser] = useState(null);
   useEffect(() => {
-    const unsubscribe = onChange(
+    const unsubscribe = auth().onAuthStateChanged(
       user => setUser(user),
       _err => setUser(null)
     );

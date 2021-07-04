@@ -1,6 +1,4 @@
 import {useMemo, useEffect, useState} from "react";
-import firebase from "firebase/app";
-import "firebase/database";
 import {useAuth} from "./auth";
 
 /*
@@ -9,7 +7,7 @@ import {useAuth} from "./auth";
 
   ```jsx
   const MyComponent = () => {
-    const [value, ref] = useData("some/relative/path");
+    const [value, ref] = useData("some/database/path");
 
     if (value === undefined) {
       return <CircularProgress />;
@@ -23,45 +21,35 @@ import {useAuth} from "./auth";
   }
   ```
 
-  Possible return values
-    value: undefined    ref: null         meaning: no response from firebase yet
-    value: null         ref: Reference    meaning: no value saved in firebase
-    value: something    ref: Reference    meaning: got the latest from firebase
+  Possible return values (gotta rethink/confirm this...)
+    error: non-null     meaning: error response from firebase
+    value: undefined    meaning: no response from firebase yet
+    value: null         meaning: no value saved in firebase
+    value: other        meaning: got the latest from firebase
 
-  Unexpected return values:
-    value: something    ref: null         meaning: should not be possible!
-    value: undefined    ref: Reference    meaning: should not be possible!
-
-
-  Other notes:
-    I'm pretty sure the firebase client will efficiently handle multiple listeners
-    to the same path, so you won't download duplicate copies of the data. React
-    will probably keep multiple copies in memory, but surely you won't have _that_
-    much data going in an out of firebase.
  */
 
-const useFirebaseRef = path => {
-  const user = useAuth();
-  return useMemo(
-    () => user && firebase.database().ref(`users/${user.uid}/data/${path}`),
-    [user, path]
-  );
-};
+// const useFirebaseRef = path => {
+//   const user = useAuth();
+//   return useMemo(
+//     () => user && firebase.database().ref(`users/${user.uid}/data/${path}`),
+//     [user, path]
+//   );
+// };
 
-const useData = path => {
-  const ref = useFirebaseRef(path);
-  const [data, setData] = useState(undefined);
+const useData = ref => {
+  const [{value, error}, setState] = useState({value: undefined, error: null});
 
   useEffect(() => {
     if (ref === null) {
-      setData(undefined); // i.e. user has logged out
+      setState({value: undefined, error: null}); // i.e. user has logged out
       return;
     }
 
     ref.on(
       "value",
-      data => setData(data.val()),
-      _err => setData(null)
+      data => setState({value: data.val(), error: null}),
+      error => setState({value: null, error})
     );
 
     return () => {
@@ -69,7 +57,7 @@ const useData = path => {
     };
   }, [ref]);
 
-  return [data, ref];
+  return {value, error, ref};
 };
 
 export {useData};
