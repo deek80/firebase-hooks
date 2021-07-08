@@ -1,8 +1,8 @@
 import {jest, beforeEach, describe, it} from "@jest/globals";
 import {act, renderHook} from "@testing-library/react-hooks";
-import {useData} from "./database";
+import {useDataByRef, useDataByPath} from "./database";
 
-describe("the useData hook", () => {
+describe("useDataByRef", () => {
   // mock firebase database ref and capture the registered callbacks
   const dataEvent = {};
   const ref = {
@@ -20,12 +20,12 @@ describe("the useData hook", () => {
   });
 
   it("initially starts with undefined data", () => {
-    const {result} = renderHook(() => useData(ref));
+    const {result} = renderHook(() => useDataByRef(ref));
     expect(result.current).toEqual({value: undefined, error: null});
   });
 
   it("remembers the most recent data value", () => {
-    const {result} = renderHook(() => useData(ref));
+    const {result} = renderHook(() => useDataByRef(ref));
     act(() => {
       dataEvent.value({val: () => "abcd"});
       dataEvent.value({val: () => "efgh"});
@@ -34,7 +34,7 @@ describe("the useData hook", () => {
   });
 
   it("returns an error if encountered", () => {
-    const {result} = renderHook(() => useData(ref));
+    const {result} = renderHook(() => useDataByRef(ref));
     act(() => {
       dataEvent.value({val: () => "abcd"});
       dataEvent.error({something: "broke"});
@@ -43,5 +43,12 @@ describe("the useData hook", () => {
       value: undefined,
       error: {something: "broke"},
     });
+  });
+});
+
+describe("useDataByPath", () => {
+  it("renders", () => {
+    // not sure exactly what I want to test here...
+    renderHook(() => useDataByPath(jest.fn(), "blah"));
   });
 });

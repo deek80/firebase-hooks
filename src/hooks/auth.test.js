@@ -2,7 +2,7 @@ import {jest, beforeEach, describe, it} from "@jest/globals";
 import {act, renderHook} from "@testing-library/react-hooks";
 import {useAuth} from "./auth";
 
-describe("the useAuth hook", () => {
+describe("useAuth", () => {
   // mock firebase auth and capture the registered callbacks
   const authEvent = {};
   const auth = () => ({
