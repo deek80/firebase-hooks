@@ -5,13 +5,15 @@ import {useAuth} from "./auth";
 describe("useAuth", () => {
   // mock firebase auth and capture the registered callbacks
   const authEvent = {};
-  const auth = () => ({
-    onAuthStateChanged: (onLogin, onError) => {
-      authEvent.login = onLogin;
-      authEvent.error = onError;
-      return jest.fn();
-    },
-  });
+  const firebase = {
+    auth: () => ({
+      onAuthStateChanged: (onLogin, onError) => {
+        authEvent.login = onLogin;
+        authEvent.error = onError;
+        return jest.fn();
+      },
+    }),
+  };
 
   beforeEach(() => {
     authEvent.login = null;
@@ -19,13 +21,13 @@ describe("useAuth", () => {
   });
 
   it("initially starts with a null user", () => {
-    const {result} = renderHook(() => useAuth(auth));
+    const {result} = renderHook(() => useAuth(firebase));
     expect(result.current).toBe(null);
   });
 
   it("remembers the most recent logged-in user", () => {
     const expectedUser = {uid: "abc"};
-    const {result} = renderHook(() => useAuth(auth));
+    const {result} = renderHook(() => useAuth(firebase));
     act(() => {
       authEvent.login({uid: "some user"});
       authEvent.login(expectedUser);
@@ -34,7 +36,7 @@ describe("useAuth", () => {
   });
 
   it("logs you out on error", () => {
-    const {result} = renderHook(() => useAuth(auth));
+    const {result} = renderHook(() => useAuth(firebase));
     act(() => {
       authEvent.login({uid: "some user"});
       authEvent.error();

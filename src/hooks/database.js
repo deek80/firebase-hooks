@@ -1,6 +1,6 @@
 import {useMemo, useEffect, useState} from "react";
 
-const useDataByRef = ref => {
+const useDataRef = ref => {
   const [{value, error}, setState] = useState({value: undefined, error: null});
 
   useEffect(() => {
@@ -20,12 +20,12 @@ const useDataByRef = ref => {
     };
   }, [ref]);
 
-  return {value, error};
+  return {value, error, ref};
 };
 
-const useDataByPath = (database, path) => {
+const useDataPath = ({database}, path) => {
   const pathRef = useMemo(() => path && database().ref(path), [database, path]);
-  return useDataByRef(pathRef);
+  return useDataRef(pathRef);
 };
 
-export {useDataByRef, useDataByPath};
+export {useDataRef, useDataPath};
