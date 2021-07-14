@@ -1,4 +1,5 @@
 import {useMemo, useEffect, useState} from "react";
+import {useAuth} from "./auth";
 
 const useDataRef = ref => {
   const [{value, error}, setState] = useState({value: undefined, error: null});
@@ -28,4 +29,16 @@ const useDataPath = ({database}, path) => {
   return useDataRef(pathRef);
 };
 
-export {useDataRef, useDataPath};
+const useData = ({auth, database}, pathOrFunction) => {
+  const user = useAuth({auth});
+  const path = useMemo(
+    () =>
+      typeof pathOrFunction === "string"
+        ? pathOrFunction
+        : pathOrFunction(user),
+    [user, pathOrFunction]
+  );
+  return useDataPath({database}, path);
+};
+
+export {useDataRef, useDataPath, useData};

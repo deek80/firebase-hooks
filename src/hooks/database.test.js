@@ -1,6 +1,6 @@
 import {jest, beforeEach, describe, it} from "@jest/globals";
 import {act, renderHook} from "@testing-library/react-hooks";
-import {useDataRef, useDataPath} from "./database";
+import {useDataRef, useDataPath, useData} from "./database";
 
 describe("useDataRef", () => {
   // mock firebase database ref and capture the registered callbacks
@@ -21,7 +21,7 @@ describe("useDataRef", () => {
 
   it("initially starts with undefined data", () => {
     const {result} = renderHook(() => useDataRef(ref));
-    expect(result.current).toEqual({value: undefined, error: null});
+    expect(result.current).toEqual({value: undefined, error: null, ref});
   });
 
   it("remembers the most recent data value", () => {
@@ -30,7 +30,7 @@ describe("useDataRef", () => {
       dataEvent.value({val: () => "abcd"});
       dataEvent.value({val: () => "efgh"});
     });
-    expect(result.current).toEqual({value: "efgh", error: null});
+    expect(result.current).toEqual({value: "efgh", error: null, ref});
   });
 
   it("returns an error if encountered", () => {
@@ -42,12 +42,16 @@ describe("useDataRef", () => {
     expect(result.current).toEqual({
       value: undefined,
       error: {something: "broke"},
+      ref,
     });
   });
 });
 
 describe("useDataPath", () => {
   const firebase = {
+    auth: () => ({
+      onAuthStateChanged: () => jest.fn(),
+    }),
     database: () => ({
       ref: () => ({
         on: jest.fn(),
@@ -57,6 +61,10 @@ describe("useDataPath", () => {
   };
   it("renders", () => {
     const {result} = renderHook(() => useDataPath(firebase, "a/path"));
-    expect(result.current).toEqual({value: undefined, error: null});
+    expect(result.current).toMatchObject({value: undefined, error: null});
+  });
+  it("is the same as useData if the path is a string", () => {
+    const {result} = renderHook(() => useData(firebase, "a/path"));
+    expect(result.current).toMatchObject({value: undefined, error: null});
   });
 });
