@@ -1,6 +1,6 @@
 {
   "name": "@deek80/firebase-hooks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React hooks for firebase services",
   "main": "src/index.js",
   "scripts": {
