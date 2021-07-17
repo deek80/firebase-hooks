@@ -21,7 +21,7 @@ const useDataRef = ref => {
     };
   }, [ref]);
 
-  return {value, error, ref};
+  return [value, error, ref];
 };
 
 const useDataPath = ({database}, path) => {
@@ -29,16 +29,12 @@ const useDataPath = ({database}, path) => {
   return useDataRef(pathRef);
 };
 
-const useData = ({auth, database}, pathOrFunction) => {
+const useData = ({auth, database}, path) => {
   const user = useAuth({auth});
-  const path = useMemo(
-    () =>
-      typeof pathOrFunction === "string"
-        ? pathOrFunction
-        : pathOrFunction(user),
-    [user, pathOrFunction]
+  return useDataPath(
+    {database},
+    typeof path === "string" ? path : user && path(user)
   );
-  return useDataPath({database}, path);
 };
 
 export {useDataRef, useDataPath, useData};

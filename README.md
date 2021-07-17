@@ -5,15 +5,40 @@ firebase services. The hooks connect to firebase's listeners so that they
 are updated immediately when any changes are made (i.e. the user logs out,
 a new user logs in, or a value in the database is updated).
 
-# Usage
+# Installation
+
+```bash
+npm install @deek80/firebase-hooks
+```
+
+# Getting started
+
+You'll first need to import firebase, initialize it, and call `makeFirebaseHooks`.
+This sets up the `useAuth` and `useData` hooks for the rest of your app to
+use.
+
+```jsx
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
+import {makeFirebaseHooks} from "@deek80/firebase-hooks";
+
+firebase.initalizeApp({
+  ...firebaseConfig,
+});
+
+const {useAuth, useData} = makeFirebaseHooks(firebase);
+
+export {useAuth, useData};
+```
+
+# Examples:
 
 - `useAuth`: A hook to get the currently logged-in user
 
   ```jsx
-  firebase.initializeApp(...);
-
   const MyUserComponent = props => {
-    const user = useAuth(firebase);
+    const user = useAuth();
     if (user === null) {
       return <Loading />;
     }
@@ -21,60 +46,35 @@ a new user logs in, or a value in the database is updated).
   };
   ```
 
-- `useDataPath`: A hook to use firebase realtime data for a given path
+- `useData`: A hook to use firebase realtime data for a given path
+  or path function.
 
   ```jsx
-  firebase.initializeApp(...);
-
   const MyDataComponent = props => {
-    const {value, error} = useDataPath("public/data/path");
+    const [name, error, ref] = useData(u => `users/${u.uid}/nickname`);
+    const updateName = () => {
+      ref.transaction(
+        currentName => currentName + "!",
+        err => alert("failed to update name :(")
+      );
+    };
+
     if (error) {
       return <div>Error fetching data: {error}</div>;
     }
-    if (value === undefined) {
+    if (name === undefined) {
       return <Loading />;
     }
-    return <div>Current value in database: {value}</div>;
-  };
-  ```
-
-# Recipes
-
-- Create a local firebase folder and inject the initialized app there. I
-  really wish I could have included this in the package, but it's tough to
-  deal with firebase's requirement of having an initalized app in order to
-  access auth() or database() from within.
-
-  ```jsx
-  import firebase from "firebase/app";
-  import "firebase/auth";
-  import "firebase/database";
-  import {useAuth, useDataPath} from "@deek80/firebase-hooks";
-
-  firebase.initalizeApp({
-    ...firebaseConfig,
-  });
-
-  const useFirebaseAuth = useAuth.apply(null, firebase);
-  const useFirebaseData = useDataPath.apply(null, firebase);
-
-  export {useFirebaseAuth, useFirebaseData};
-  ```
-
-- Create a private data hook:
-
-  ```jsx
-  const usePrivateData = path => {
-    const user = useFirebaseAuth();
-    const privatePath = useMemo(
-      () => `users/${user.uid}/data/${path}`,
-      [user, path]
+    return (
+      <div>
+        <div>Hello, {name}</div>
+        <Button onClick={updateName}>Click me</Button>
+      </div>
     );
-    return useFirebaseData(privatePath);
   };
   ```
 
-  and corresponding database rule:
+  With this example, you'd have a corresponding database rule:
 
   ```json
   {
@@ -90,9 +90,3 @@ a new user logs in, or a value in the database is updated).
     }
   }
   ```
-
-# Installation
-
-```bash
-npm install @deek80/firebase-hooks
-```

@@ -21,7 +21,7 @@ describe("useDataRef", () => {
 
   it("initially starts with undefined data", () => {
     const {result} = renderHook(() => useDataRef(ref));
-    expect(result.current).toEqual({value: undefined, error: null, ref});
+    expect(result.current).toEqual([undefined, null, ref]);
   });
 
   it("remembers the most recent data value", () => {
@@ -30,7 +30,7 @@ describe("useDataRef", () => {
       dataEvent.value({val: () => "abcd"});
       dataEvent.value({val: () => "efgh"});
     });
-    expect(result.current).toEqual({value: "efgh", error: null, ref});
+    expect(result.current).toEqual(["efgh", null, ref]);
   });
 
   it("returns an error if encountered", () => {
@@ -39,11 +39,7 @@ describe("useDataRef", () => {
       dataEvent.value({val: () => "abcd"});
       dataEvent.error({something: "broke"});
     });
-    expect(result.current).toEqual({
-      value: undefined,
-      error: {something: "broke"},
-      ref,
-    });
+    expect(result.current).toEqual([undefined, {something: "broke"}, ref]);
   });
 });
 
@@ -61,10 +57,12 @@ describe("useDataPath", () => {
   };
   it("renders", () => {
     const {result} = renderHook(() => useDataPath(firebase, "a/path"));
-    expect(result.current).toMatchObject({value: undefined, error: null});
+    const [value, error, _ref] = result.current;
+    expect([value, error]).toEqual([undefined, null]);
   });
   it("is the same as useData if the path is a string", () => {
     const {result} = renderHook(() => useData(firebase, "a/path"));
-    expect(result.current).toMatchObject({value: undefined, error: null});
+    const [value, error, _ref] = result.current;
+    expect([value, error]).toEqual([undefined, null]);
   });
 });
