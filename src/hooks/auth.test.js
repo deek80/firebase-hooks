@@ -1,23 +1,13 @@
-import {jest, beforeEach, describe, it} from "@jest/globals";
+import {beforeEach, describe, expect, it} from "@jest/globals";
 import {act, renderHook} from "@testing-library/react-hooks";
 import {useAuth} from "./auth";
+import {mockFirebase} from "./mocks";
 
 describe("useAuth", () => {
-  // mock firebase auth and capture the registered callbacks
-  const authEvent = {};
-  const firebase = {
-    auth: () => ({
-      onAuthStateChanged: (onLogin, onError) => {
-        authEvent.login = onLogin;
-        authEvent.error = onError;
-        return jest.fn();
-      },
-    }),
-  };
+  let firebase;
 
   beforeEach(() => {
-    authEvent.login = null;
-    authEvent.error = null;
+    firebase = mockFirebase();
   });
 
   it("initially starts with a null user", () => {
@@ -29,8 +19,8 @@ describe("useAuth", () => {
     const expectedUser = {uid: "abc"};
     const {result} = renderHook(() => useAuth(firebase));
     act(() => {
-      authEvent.login({uid: "some user"});
-      authEvent.login(expectedUser);
+      firebase.callbacks.loginAs({uid: "some user"});
+      firebase.callbacks.loginAs(expectedUser);
     });
     expect(result.current).toBe(expectedUser);
   });
@@ -38,8 +28,8 @@ describe("useAuth", () => {
   it("logs you out on error", () => {
     const {result} = renderHook(() => useAuth(firebase));
     act(() => {
-      authEvent.login({uid: "some user"});
-      authEvent.error();
+      firebase.callbacks.loginAs({uid: "some user"});
+      firebase.callbacks.loginError();
     });
     expect(result.current).toBe(null);
   });

@@ -4,7 +4,8 @@
   "description": "React hooks for firebase services",
   "main": "src/index.js",
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "debug": "NODE_OPTIONS='--experimental-vm-modules --inspect-brk' jest --runInBand"
   },
   "type": "module",
   "devDependencies": {
