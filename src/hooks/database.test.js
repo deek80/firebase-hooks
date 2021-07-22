@@ -1,68 +1,80 @@
-import {jest, beforeEach, describe, it} from "@jest/globals";
+import {beforeEach, describe, it} from "@jest/globals";
 import {act, renderHook} from "@testing-library/react-hooks";
-import {useDataRef, useDataPath, useData} from "./database";
+import {useDataRef, useData} from "./database";
+import {mockFirebase} from "./mocks";
 
 describe("useDataRef", () => {
-  // mock firebase database ref and capture the registered callbacks
-  const dataEvent = {};
-  const ref = {
-    on: (_label, onValue, onError) => {
-      dataEvent.value = onValue;
-      dataEvent.error = onError;
-      return jest.fn();
-    },
-    off: jest.fn(),
-  };
+  let firebase, ref;
 
   beforeEach(() => {
-    dataEvent.value = null;
-    dataEvent.error = null;
+    firebase = mockFirebase();
+    ref = firebase.database().ref();
   });
 
-  it("initially starts with undefined data", () => {
+  it("hangs onto the latest update or error", () => {
     const {result} = renderHook(() => useDataRef(ref));
     expect(result.current).toEqual([undefined, null, ref]);
-  });
 
-  it("remembers the most recent data value", () => {
-    const {result} = renderHook(() => useDataRef(ref));
-    act(() => {
-      dataEvent.value({val: () => "abcd"});
-      dataEvent.value({val: () => "efgh"});
-    });
+    act(() => firebase.callbacks.dbValue("abcd"));
+    expect(result.current).toEqual(["abcd", null, ref]);
+
+    act(() => firebase.callbacks.dbValue("efgh"));
     expect(result.current).toEqual(["efgh", null, ref]);
-  });
 
-  it("returns an error if encountered", () => {
-    const {result} = renderHook(() => useDataRef(ref));
-    act(() => {
-      dataEvent.value({val: () => "abcd"});
-      dataEvent.error({something: "broke"});
-    });
-    expect(result.current).toEqual([undefined, {something: "broke"}, ref]);
+    act(() => firebase.callbacks.dbError("uh oh!"));
+    expect(result.current).toEqual([undefined, "uh oh!", ref]);
+
+    act(() => firebase.callbacks.dbValue("recovered"));
+    expect(result.current).toEqual(["recovered", null, ref]);
   });
 });
 
-describe("useDataPath", () => {
-  const firebase = {
-    auth: () => ({
-      onAuthStateChanged: () => jest.fn(),
-    }),
-    database: () => ({
-      ref: () => ({
-        on: jest.fn(),
-        off: jest.fn(),
-      }),
-    }),
-  };
-  it("renders", () => {
-    const {result} = renderHook(() => useDataPath(firebase, "a/path"));
-    const [value, error, _ref] = result.current;
-    expect([value, error]).toEqual([undefined, null]);
+describe("useData", () => {
+  let firebase;
+
+  beforeEach(() => {
+    firebase = mockFirebase();
   });
-  it("is the same as useData if the path is a string", () => {
-    const {result} = renderHook(() => useData(firebase, "a/path"));
-    const [value, error, _ref] = result.current;
-    expect([value, error]).toEqual([undefined, null]);
+
+  it("can build the useDataRef hook with a path string", () => {
+    renderHook(() => useData(firebase, "a/path"));
+    expect(firebase.inspections.ref).toHaveBeenCalledWith("a/path");
+  });
+
+  it("can build the useDataRef hook with a path function", () => {
+    renderHook(() => useData(firebase, u => `users/${u.id}/data`));
+    expect(firebase.database).not.toHaveBeenCalled();
+
+    act(() => firebase.callbacks.loginAs({id: "123"}));
+    expect(firebase.inspections.ref).toHaveBeenCalledWith("users/123/data");
+  });
+
+  it("updates the data path when the user changes", () => {
+    renderHook(() => useData(firebase, u => `users/${u.id}/data`));
+    act(() => firebase.callbacks.loginAs({id: "123"}));
+    expect(firebase.inspections.ref).toHaveBeenCalledWith("users/123/data");
+    expect(firebase.database).toHaveBeenCalledTimes(1);
+
+    act(() => firebase.callbacks.loginAs({id: "456"}));
+    expect(firebase.inspections.ref).toHaveBeenCalledWith("users/456/data");
+    expect(firebase.database).toHaveBeenCalledTimes(2);
+  });
+
+  it("removes the ref when the user logs out", () => {
+    const {result} = renderHook(() =>
+      useData(firebase, u => `users/${u.id}/data`)
+    );
+    act(() => firebase.callbacks.loginAs({id: "123"}));
+    expect(result.current[2]).not.toBeNull();
+
+    act(() => firebase.callbacks.loginAs(null));
+    expect(result.current[2]).toBeNull();
+  });
+
+  it("does not update a string data ref when the user changes", () => {
+    renderHook(() => useData(firebase, "a/path"));
+    expect(firebase.database).toHaveBeenCalledTimes(1);
+    act(() => firebase.callbacks.loginAs({id: "123"}));
+    expect(firebase.database).toHaveBeenCalledTimes(1);
   });
 });
